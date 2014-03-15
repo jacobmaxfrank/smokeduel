@@ -8,9 +8,14 @@ public class MissileController : MonoBehaviour
 {
 	public float _initialVelocity;
 
-	public float _thrustStartDelay, _thrustDuration,	// seconds
+	public float _thrustStartDelay, _thrustEndDelay, _activationDelay, _autoDetonateDelay,	// seconds
 				 _thrustForce;
-	private float m_thrustStart, m_thrustEnd;			// seconds
+	private float m_thrustStart, m_thrustEnd, m_activationReady, m_autoDetonate;			// seconds
+
+	public CFDController _CFD;
+	public PlayerController _firer;
+
+	public float _smokeAmount;
 
 	/// <summary>
 	/// Initialization
@@ -19,7 +24,9 @@ public class MissileController : MonoBehaviour
 	{
 		// Setup thrust timing
 		m_thrustStart = Time.time + _thrustStartDelay;
-		m_thrustEnd = m_thrustStart + _thrustDuration;
+		m_thrustEnd = Time.time + _thrustEndDelay;
+		m_activationReady = Time.time + _activationDelay;
+		m_autoDetonate = Time.time + _autoDetonateDelay;
 	}
 
 	/// <summary>
@@ -44,9 +51,16 @@ public class MissileController : MonoBehaviour
 	/// </summary>
 	void Update ()
 	{
-		if (Input.GetAxisRaw("Missile") == 1)
-		{
-			// TODO: detonate in-flight missile here if applicable
-		}
+		if ((Input.GetAxisRaw("Missile") == 1 && Time.time >= m_activationReady) || Time.time >= m_autoDetonate)
+			Detonate();
+	}
+
+	private void Detonate()
+	{
+		_firer._firedMissile = null;
+		int cfd_x, cfd_y;
+		_CFD.WorldToGrid (rigidbody2D.transform.position, out cfd_x, out cfd_y);
+		_CFD.AddDensityAt(_smokeAmount, cfd_x, cfd_y);
+		Destroy (gameObject);
 	}
 }

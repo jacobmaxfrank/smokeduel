@@ -13,17 +13,20 @@ public class PlayerController : MonoBehaviour
 	public float _thrustFactor, _turnRate;
 
 	// Missile
-	public GameObject _missile;
+	public GameObject _missileToClone;
 	public Transform _missileTransform;
 	public float _missileFireRate,			// seconds
 				 _missileLaunchVelocity;
 	private float m_missileNextFireTime;
+	public GameObject _firedMissile;
 
 	// Torus wrapping
 	private Vector2 m_canvasBounds = new Vector2(-1f, -1f);
 	public GameObject _torusHorizontal, _torusVertical, _torusCorner;
 	private static readonly Vector3 OFFSCREEN = new Vector3(-1000f, 0f, 0f);
 	public int _horizontalWrap = 0, _verticalWrap = 0;
+
+	public CFDController _CFD;
 
 	/// <summary>
 	/// Initialization
@@ -52,16 +55,23 @@ public class PlayerController : MonoBehaviour
 	/// </summary>
 	void Update ()
 	{
-		if (Input.GetAxisRaw("Missile") == 1 && Time.time > m_missileNextFireTime)
+		if (Input.GetAxisRaw("Missile") == 1)
 		{
-			// TODO: only fire a new missile if there isn't one already in-flight
-
-			// Reset fire rate counter and initialize missile
-			m_missileNextFireTime = Time.time + _missileFireRate;
-			GameObject missile_fired = Instantiate(_missile, _missileTransform.position, _missileTransform.rotation) as GameObject;
-
-			// Set velocity to be the ship's velocity plus the launch velocity along look vector
-			missile_fired.rigidbody2D.velocity = rigidbody2D.velocity + ForwardVec2() * _missileLaunchVelocity;
+			if (_firedMissile == null)
+			{
+				if (Time.time > m_missileNextFireTime) // TODO: BUG > Need to bump this when missile detonation occurs?  Check original code.
+				{
+					// Reset fire rate counter and initialize missile
+					m_missileNextFireTime = Time.time + _missileFireRate;
+					_firedMissile = Instantiate(_missileToClone, _missileTransform.position, _missileTransform.rotation) as GameObject;
+					
+					// Set velocity to be the ship's velocity plus the launch velocity along look vector, and set hooks to CFD and self
+					_firedMissile.rigidbody2D.velocity = rigidbody2D.velocity + ForwardVec2() * _missileLaunchVelocity;
+					MissileController mc = _firedMissile.GetComponent<MissileController>();
+					mc._CFD = _CFD;
+					mc._firer = this;
+				}
+			}
 		}
 	}
 
