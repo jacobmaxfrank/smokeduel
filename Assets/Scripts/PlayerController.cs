@@ -52,23 +52,32 @@ public class PlayerController : MonoBehaviour
 
 	[RPC]
 	public void SetUpPlayer(string playerName, NetworkViewID horizontalID, NetworkViewID verticalID, NetworkViewID cornerID) {
-		Debug.Log("Setting up local player");
-
 		gameObject.name = playerName;
 		_CFD = GameObject.Find("CFD").GetComponent<CFDController>();
 
+		Color color = Color.white;
+		//enemy is red/black TODO server is blue, client is red/black TODO missiles are same color
+		if (gameObject.networkView.owner != Network.player)
+			color = Color.red;
+
+		gameObject.GetComponent<SpriteRenderer>().color = color;
+
 		//TODO this should be set up when creating a player, not through networkViews
 		GameObject torusClone = NetworkView.Find(horizontalID).gameObject;
+		torusClone.GetComponent<SpriteRenderer>().color = color;
 		torusClone.name = playerName + " horizontal";
 		_torusHorizontal = torusClone;
 
 		torusClone = NetworkView.Find(verticalID).gameObject;
+		torusClone.GetComponent<SpriteRenderer>().color = color;
 		torusClone.name = playerName + " vertical";
 		_torusVertical = torusClone;
 
 		torusClone = NetworkView.Find(cornerID).gameObject;
+		torusClone.GetComponent<SpriteRenderer>().color = color;
 		torusClone.name = playerName + " horizontal";
 		_torusCorner = torusClone;
+
 	}
 
 	/// <summary>
