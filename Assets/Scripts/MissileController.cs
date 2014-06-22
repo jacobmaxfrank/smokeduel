@@ -34,17 +34,18 @@ public class MissileController : MonoBehaviour
 	/// </summary>
 	void FixedUpdate()
 	{
-		if (gameObject.GetComponent<NetworkView>().isMine) {
-			if (Time.time >= m_thrustStart && Time.time <= m_thrustEnd)
-			{
-				// Get quaternion representing heading
-				Quaternion rotation = Quaternion.Euler(0f, 0f, rigidbody2D.transform.eulerAngles.z);
-				
-				// Get look vector from heading quat and apply thrust along it
-				Vector3 forward = rotation * new Vector3 (1f, 0f, 0f);
-				forward.Normalize();
-				rigidbody2D.AddForce(forward * _thrustForce);
-			}
+		if (! gameObject.networkView.isMine)
+			return;
+
+		if (Time.time >= m_thrustStart && Time.time <= m_thrustEnd)
+		{
+			// Get quaternion representing heading
+			Quaternion rotation = Quaternion.Euler(0f, 0f, rigidbody2D.transform.eulerAngles.z);
+			
+			// Get look vector from heading quat and apply thrust along it
+			Vector3 forward = rotation * new Vector3 (1f, 0f, 0f);
+			forward.Normalize();
+			rigidbody2D.AddForce(forward * _thrustForce);
 		}
 	}
 

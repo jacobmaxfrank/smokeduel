@@ -39,25 +39,19 @@ public class Server : MonoBehaviour {
 
 		GameObject player = Resources.Load<GameObject>("Prefabs/Player");
 		player = Network.Instantiate(player, Vector3.zero, Quaternion.identity, 0) as GameObject;
-		player.name = System.Environment.MachineName;
 
 		GameObject torusCloneResource = Resources.Load<GameObject>("Prefabs/TorusClone");
-		PlayerController controller = player.GetComponent<PlayerController>();
-		controller._isLocalPlayer = true;
 
 		GameObject torusClone = Network.Instantiate(torusCloneResource, Vector3.zero, Quaternion.identity, 0) as GameObject;
-		torusClone.name = player.name + " Clone";
-		controller._torusHorizontal = torusClone;
+		NetworkViewID horizontalID = torusClone.networkView.viewID;
 
 		torusClone = Network.Instantiate(torusCloneResource, Vector3.zero, Quaternion.identity, 0) as GameObject;
-		torusClone.name = player.name + " Clone";
-		controller._torusVertical = torusClone;
+		NetworkViewID verticalID = torusClone.networkView.viewID;
 
 		torusClone = Network.Instantiate(torusCloneResource, Vector3.zero, Quaternion.identity, 0) as GameObject;
-		torusClone.name = player.name + " Clone";
-		controller._torusCorner = torusClone;
+		NetworkViewID cornerID = torusClone.networkView.viewID;
 
-		CFDController cfd = GameObject.Find("CFD").GetComponent<CFDController>();
-		controller._CFD = cfd;
+		player.networkView.RPC("SetUpPlayer", RPCMode.AllBuffered, System.Environment.MachineName, horizontalID, verticalID, cornerID);
 	}
+
 }

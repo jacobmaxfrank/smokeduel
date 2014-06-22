@@ -28,8 +28,6 @@ public class PlayerController : MonoBehaviour
 
 	public CFDController _CFD;
 
-	public bool _isLocalPlayer = false;
-
 	/// <summary>
 	/// Initialization
 	/// </summary>
@@ -51,13 +49,34 @@ public class PlayerController : MonoBehaviour
 		if (m_canvasBounds.x == -1f)
 			throw new UnityException("Unable to locate world bounding box");
 	}
-	
+
+	[RPC]
+	public void SetUpPlayer(string playerName, NetworkViewID horizontalID, NetworkViewID verticalID, NetworkViewID cornerID) {
+		Debug.Log("Setting up local player");
+
+		gameObject.name = playerName;
+		_CFD = GameObject.Find("CFD").GetComponent<CFDController>();
+
+		//TODO this should be set up when creating a player, not through networkViews
+		GameObject torusClone = NetworkView.Find(horizontalID).gameObject;
+		torusClone.name = playerName + " horizontal";
+		_torusHorizontal = torusClone;
+
+		torusClone = NetworkView.Find(verticalID).gameObject;
+		torusClone.name = playerName + " vertical";
+		_torusVertical = torusClone;
+
+		torusClone = NetworkView.Find(cornerID).gameObject;
+		torusClone.name = playerName + " horizontal";
+		_torusCorner = torusClone;
+	}
+
 	/// <summary>
 	/// Update once per frame (handle user input)
 	/// </summary>
 	void Update ()
 	{
-		if (! _isLocalPlayer)
+		if (! gameObject.networkView.isMine)
 			return;
 
 		if (Input.GetAxisRaw("Missile") == 1)
@@ -85,7 +104,7 @@ public class PlayerController : MonoBehaviour
 	/// </summary>
 	void FixedUpdate()
 	{
-		if (_isLocalPlayer) {
+		if (gameObject.networkView.isMine) {
 			// Apply thrust along look vector
 			Vector3 forward = ForwardVec3 ();
 			float thrust = Input.GetAxisRaw ("Thrust");
