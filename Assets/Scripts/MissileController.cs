@@ -34,15 +34,17 @@ public class MissileController : MonoBehaviour
 	/// </summary>
 	void FixedUpdate()
 	{
-		if (Time.time >= m_thrustStart && Time.time <= m_thrustEnd)
-		{
-			// Get quaternion representing heading
-			Quaternion rotation = Quaternion.Euler(0f, 0f, rigidbody2D.transform.eulerAngles.z);
-			
-			// Get look vector from heading quat and apply thrust along it
-			Vector3 forward = rotation * new Vector3 (1f, 0f, 0f);
-			forward.Normalize();
-			rigidbody2D.AddForce(forward * _thrustForce);
+		if (gameObject.GetComponent<NetworkView>().isMine) {
+			if (Time.time >= m_thrustStart && Time.time <= m_thrustEnd)
+			{
+				// Get quaternion representing heading
+				Quaternion rotation = Quaternion.Euler(0f, 0f, rigidbody2D.transform.eulerAngles.z);
+				
+				// Get look vector from heading quat and apply thrust along it
+				Vector3 forward = rotation * new Vector3 (1f, 0f, 0f);
+				forward.Normalize();
+				rigidbody2D.AddForce(forward * _thrustForce);
+			}
 		}
 	}
 
@@ -60,7 +62,11 @@ public class MissileController : MonoBehaviour
 		_firer._firedMissile = null;
 		int cfd_x, cfd_y;
 		_CFD.WorldToGrid (rigidbody2D.transform.position, out cfd_x, out cfd_y);
-		_CFD.AddDensityAt(_smokeAmount, cfd_x, cfd_y);
-		Destroy (gameObject);
+		if (Network.isClient)
+			_CFD.gameObject.GetComponent<NetworkView>().RPC("AddDensityAt", RPCMode.Server, _smokeAmount, cfd_x, cfd_y);
+		else
+			_CFD.AddDensityAt(_smokeAmount, cfd_x, cfd_y);
+
+		Network.Destroy (gameObject);
 	}
 }

@@ -32,8 +32,15 @@ public class CFDController : MonoBehaviour
 	// void FixedUpdate()
 	void Update()
 	{
-		RunTimeStep ();
+		if (Network.isServer)
+			RunTimeStep ();
 		// TODO: PERF > Should this be run in FixedUpdate()?  Update()?  Coroutine?  Own thread(s)?  On GPU?
+	}
+
+	void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info) {
+		for (int i = 0; i < m_density.Length; ++i) {
+			stream.Serialize(ref m_density[i]);
+		}
 	}
 
 	/// <summary>
@@ -263,9 +270,11 @@ public class CFDController : MonoBehaviour
 	/// <param name="source">Amount of smoke to add</param>
 	/// <param name="x">x position</param>
 	/// <param name="y">y position</param>
+	[RPC]
 	public void AddDensityAt(float source, int x, int y)
 	{
-		m_density[IX(x,y)] += source;
+		if (Network.isServer)
+			m_density[IX(x,y)] += source;
 	}
 
 	/// <summary>

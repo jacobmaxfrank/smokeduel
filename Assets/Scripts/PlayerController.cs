@@ -68,7 +68,7 @@ public class PlayerController : MonoBehaviour
 				{
 					// Reset fire rate counter and initialize missile
 					m_missileNextFireTime = Time.time + _missileFireRate;
-					_firedMissile = Instantiate(_missileToClone, _missileTransform.position, _missileTransform.rotation) as GameObject;
+					_firedMissile = Network.Instantiate(_missileToClone, _missileTransform.position, _missileTransform.rotation, 0) as GameObject;
 					
 					// Set velocity to be the ship's velocity plus the launch velocity along look vector, and set hooks to CFD and self
 					_firedMissile.rigidbody2D.velocity = rigidbody2D.velocity + ForwardVec2() * _missileLaunchVelocity;
