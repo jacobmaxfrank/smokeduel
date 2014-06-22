@@ -28,6 +28,8 @@ public class PlayerController : MonoBehaviour
 
 	public CFDController _CFD;
 
+	public bool _isLocalPlayer = false;
+
 	/// <summary>
 	/// Initialization
 	/// </summary>
@@ -55,6 +57,9 @@ public class PlayerController : MonoBehaviour
 	/// </summary>
 	void Update ()
 	{
+		if (! _isLocalPlayer)
+			return;
+
 		if (Input.GetAxisRaw("Missile") == 1)
 		{
 			if (_firedMissile == null)
@@ -80,14 +85,16 @@ public class PlayerController : MonoBehaviour
 	/// </summary>
 	void FixedUpdate()
 	{
-		// Apply thrust along look vector
-		Vector3 forward = ForwardVec3 ();
-		float thrust = Input.GetAxisRaw ("Thrust");
-		rigidbody2D.AddForce(new Vector2(forward.x, forward.y) * thrust * _thrustFactor);
+		if (_isLocalPlayer) {
+			// Apply thrust along look vector
+			Vector3 forward = ForwardVec3 ();
+			float thrust = Input.GetAxisRaw ("Thrust");
+			rigidbody2D.AddForce(new Vector2(forward.x, forward.y) * thrust * _thrustFactor);
 
-		// Directly set angular velocity (no angular acceleration/force, though adding that that might add to gameplay)
-		float turn = Input.GetAxisRaw ("Turn");
-		rigidbody2D.angularVelocity = _turnRate * turn;
+			// Directly set angular velocity (no angular acceleration/force, though adding that that might add to gameplay)
+			float turn = Input.GetAxisRaw ("Turn");
+			rigidbody2D.angularVelocity = _turnRate * turn;
+		}
 
 		UpdateTorusClones ();
 	}
