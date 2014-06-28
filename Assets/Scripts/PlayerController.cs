@@ -28,6 +28,8 @@ public class PlayerController : MonoBehaviour
 
 	public CFDController _CFD;
 
+	public float damage;
+
 	/// <summary>
 	/// Initialization
 	/// </summary>
@@ -48,6 +50,8 @@ public class PlayerController : MonoBehaviour
 		}
 		if (m_canvasBounds.x == -1f)
 			throw new UnityException("Unable to locate world bounding box");
+
+		GetComponent<DamageCounter>().controller = this;
 	}
 
 	[RPC]
@@ -62,21 +66,20 @@ public class PlayerController : MonoBehaviour
 
 		gameObject.GetComponent<SpriteRenderer>().color = color;
 
-		//TODO this should be set up when creating a player, not through networkViews
-		GameObject torusClone = NetworkView.Find(horizontalID).gameObject;
-		torusClone.GetComponent<SpriteRenderer>().color = color;
-		torusClone.name = playerName + " horizontal";
-		_torusHorizontal = torusClone;
+		_torusHorizontal = NetworkView.Find(horizontalID).gameObject;
+		_torusHorizontal.GetComponent<SpriteRenderer>().color = color;
+		_torusHorizontal.name = playerName + " horizontal";
+		_torusHorizontal.GetComponent<DamageCounter>().controller = this;
 
-		torusClone = NetworkView.Find(verticalID).gameObject;
-		torusClone.GetComponent<SpriteRenderer>().color = color;
-		torusClone.name = playerName + " vertical";
-		_torusVertical = torusClone;
+		_torusVertical = NetworkView.Find(verticalID).gameObject;
+		_torusVertical.GetComponent<SpriteRenderer>().color = color;
+		_torusVertical.name = playerName + " vertical";
+		_torusVertical.GetComponent<DamageCounter>().controller = this;
 
-		torusClone = NetworkView.Find(cornerID).gameObject;
-		torusClone.GetComponent<SpriteRenderer>().color = color;
-		torusClone.name = playerName + " horizontal";
-		_torusCorner = torusClone;
+		_torusCorner = NetworkView.Find(cornerID).gameObject;
+		_torusCorner.GetComponent<SpriteRenderer>().color = color;
+		_torusCorner.name = playerName + " horizontal";
+		_torusCorner.GetComponent<DamageCounter>().controller = this;
 
 	}
 
