@@ -134,6 +134,10 @@ public class PlayerController : MonoBehaviour
 		UpdateTorusClones ();
 	}
 
+	void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info) {
+		stream.Serialize(ref damage);
+	}
+
 	/// <summary>
 	/// Update the position of edge/corner torus clones
 	/// </summary>
