@@ -64,22 +64,26 @@ public class PlayerController : MonoBehaviour
 		if (gameObject.networkView.owner != Network.player)
 			color = Color.red;
 
-		gameObject.GetComponent<SpriteRenderer>().color = color;
+		GetComponent<SpriteRenderer>().color = color;
+		GetComponentInChildren<Shield>().controller = this;
 
 		_torusHorizontal = NetworkView.Find(horizontalID).gameObject;
 		_torusHorizontal.GetComponent<SpriteRenderer>().color = color;
 		_torusHorizontal.name = playerName + " horizontal";
 		_torusHorizontal.GetComponent<DamageCounter>().controller = this;
+		_torusHorizontal.GetComponentInChildren<Shield>().controller = this;
 
 		_torusVertical = NetworkView.Find(verticalID).gameObject;
 		_torusVertical.GetComponent<SpriteRenderer>().color = color;
 		_torusVertical.name = playerName + " vertical";
 		_torusVertical.GetComponent<DamageCounter>().controller = this;
+		_torusVertical.GetComponentInChildren<Shield>().controller = this;
 
 		_torusCorner = NetworkView.Find(cornerID).gameObject;
 		_torusCorner.GetComponent<SpriteRenderer>().color = color;
 		_torusCorner.name = playerName + " horizontal";
 		_torusCorner.GetComponent<DamageCounter>().controller = this;
+		_torusCorner.GetComponentInChildren<Shield>().controller = this;
 
 	}
 
