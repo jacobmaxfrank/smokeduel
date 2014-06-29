@@ -13,12 +13,14 @@ public class PlayerController : MonoBehaviour
 	public float _thrustFactor, _turnRate;
 
 	// Missile
-	public GameObject _missileToClone;
-	public Transform _missileTransform;
+	public GameObject _missileToClone, _mineToClone;
+	public Transform _missileTransform, _mineTransform;
 	public float _missileFireRate,			// seconds
 				 _missileLaunchVelocity;
-	private float m_missileNextFireTime;
-	public GameObject _firedMissile;
+	public float _mineFireRate,			// seconds
+				 _mineLaunchVelocity;
+	private float m_missileNextFireTime, m_mineNextFireTime;
+	public GameObject _firedMissile, _firedMine;
 
 	// Torus wrapping
 	private Vector2 m_canvasBounds = new Vector2(-1f, -1f);
@@ -113,6 +115,26 @@ public class PlayerController : MonoBehaviour
 				}
 			}
 		}
+
+		if (Input.GetAxisRaw("Mine") == 1)
+		{
+			if (_firedMine == null)
+			{
+				if (Time.time > m_mineNextFireTime) // TODO: BUG > Need to bump this when missile detonation occurs?  Check original code.
+				{
+					// Reset fire rate counter and initialize mine
+					m_mineNextFireTime = Time.time + _mineFireRate;
+					_firedMine = Network.Instantiate(_mineToClone, _mineTransform.position, _mineTransform.rotation, 0) as GameObject;
+					
+					// Set velocity to be the ship's velocity plus the launch velocity along look vector, and set hooks to CFD and self
+					_firedMine.rigidbody2D.velocity = rigidbody2D.velocity + ForwardVec2() * _mineLaunchVelocity;
+					MineController mc = _firedMine.GetComponent<MineController>();
+					mc._CFD = _CFD;
+					mc._firer = this;
+				}
+			}
+		}
+
 	}
 
 	/// <summary>
