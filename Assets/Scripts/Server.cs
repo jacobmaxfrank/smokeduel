@@ -1,11 +1,20 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+public enum PLAYER_COLOR {
+	RED = 0,
+	GREEN = 1,
+	BLUE = 2
+}
+
 public class Server : MonoBehaviour {
 	public static bool connected;
 	//public static readonly string GAME_NAME = "HydromancySmokeDuel";
 	public static string error = null;
 	public static readonly int port = 25000;
+
+	private static readonly string[] colorStrings = new string[] {"Red", "Green", "Blue"};
+	public static PLAYER_COLOR playerColor = PLAYER_COLOR.RED;
 
 	void Start() {
 		connected = false;
@@ -18,8 +27,11 @@ public class Server : MonoBehaviour {
 		if (connected)
 			return;
 
+		//Ship selection
+		playerColor = (PLAYER_COLOR)GUI.SelectionGrid(new Rect(0.0f, 0.0f, 200.0f, 40.0f), (int)playerColor, colorStrings, colorStrings.Length);
+
 		//Host game
-		if (GUI.Button(new Rect(0.0f, 0.0f, 200.0f, 40.0f), "Host Game")) {
+		if (GUI.Button(new Rect(0.0f, 40.0f, 200.0f, 40.0f), "Host Game")) {
 			NetworkConnectionError e = Network.InitializeServer(4, port,  Network.HavePublicAddress());
 			if (e != NetworkConnectionError.NoError) {
 				error = e.ToString();
@@ -51,7 +63,19 @@ public class Server : MonoBehaviour {
 		torusClone = Network.Instantiate(torusCloneResource, Vector3.zero, Quaternion.identity, 0) as GameObject;
 		NetworkViewID cornerID = torusClone.networkView.viewID;
 
-		player.networkView.RPC("SetUpPlayer", RPCMode.AllBuffered, System.Environment.MachineName, horizontalID, verticalID, cornerID);
+		string playerColorName = "";
+		switch (playerColor) {
+			case PLAYER_COLOR.RED:
+				playerColorName = "red";
+				break;
+			case PLAYER_COLOR.GREEN:
+				playerColorName = "green";
+				break;
+			case PLAYER_COLOR.BLUE:
+				playerColorName = "blue";
+				break;
+		}
+		player.networkView.RPC("SetUpPlayer", RPCMode.AllBuffered, System.Environment.MachineName, horizontalID, verticalID, cornerID, playerColorName);
 	}
 
 }

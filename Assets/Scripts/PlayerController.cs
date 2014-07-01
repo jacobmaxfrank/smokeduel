@@ -32,6 +32,32 @@ public class PlayerController : MonoBehaviour
 
 	public float damage;
 
+	private bool _thrusting;
+	public bool thrusting {
+		set {
+			if (_thrusting == value)
+				return;
+
+			_thrusting = value;
+
+			Sprite sprite;
+			if (_thrusting)
+				sprite = _thrustingSprite;
+			else
+				sprite = _normalSprite;
+
+			GetComponent<SpriteRenderer>().sprite = sprite;
+			_torusHorizontal.GetComponent<SpriteRenderer>().sprite = sprite;
+			_torusVertical.GetComponent<SpriteRenderer>().sprite = sprite;
+			_torusCorner.GetComponent<SpriteRenderer>().sprite = sprite;
+		}
+		get { return _thrusting; }
+	}
+
+	private Sprite _normalSprite, _thrustingSprite;
+	private string _missileSpriteFilename, _thrustingMissileSpriteFilename;
+	private string _mineSpriteFilename;
+
 	/// <summary>
 	/// Initialization
 	/// </summary>
@@ -57,36 +83,37 @@ public class PlayerController : MonoBehaviour
 	}
 
 	[RPC]
-	public void SetUpPlayer(string playerName, NetworkViewID horizontalID, NetworkViewID verticalID, NetworkViewID cornerID) {
+	public void SetUpPlayer(string playerName, NetworkViewID horizontalID, NetworkViewID verticalID, NetworkViewID cornerID, string colorName) {
 		gameObject.name = playerName;
 		_CFD = GameObject.Find("CFD").GetComponent<CFDController>();
 
-		Color color = Color.white;
-		//enemy is red/black TODO server is blue, client is red/black TODO missiles are same color
-		if (gameObject.networkView.owner != Network.player)
-			color = Color.red;
+		_normalSprite = Resources.Load<Sprite>("Sprites/fighter_" + colorName);
+		_thrustingSprite = Resources.Load<Sprite>("Sprites/fighter_" + colorName + "_thrust");
 
-		GetComponent<SpriteRenderer>().color = color;
+		_missileSpriteFilename  = "Sprites/missile_" + colorName;
+		_thrustingMissileSpriteFilename = "Sprites/missile_" + colorName + "_thrust";
+		_mineSpriteFilename = "Sprites/mine_" + colorName;
+
+		GetComponent<SpriteRenderer>().sprite = _normalSprite;
 		GetComponentInChildren<Shield>().controller = this;
 
 		_torusHorizontal = NetworkView.Find(horizontalID).gameObject;
-		_torusHorizontal.GetComponent<SpriteRenderer>().color = color;
+		_torusHorizontal.GetComponent<SpriteRenderer>().sprite = _normalSprite;
 		_torusHorizontal.name = playerName + " horizontal";
 		_torusHorizontal.GetComponent<DamageCounter>().controller = this;
 		_torusHorizontal.GetComponentInChildren<Shield>().controller = this;
 
 		_torusVertical = NetworkView.Find(verticalID).gameObject;
-		_torusVertical.GetComponent<SpriteRenderer>().color = color;
+		_torusVertical.GetComponent<SpriteRenderer>().sprite = _normalSprite;
 		_torusVertical.name = playerName + " vertical";
 		_torusVertical.GetComponent<DamageCounter>().controller = this;
 		_torusVertical.GetComponentInChildren<Shield>().controller = this;
 
 		_torusCorner = NetworkView.Find(cornerID).gameObject;
-		_torusCorner.GetComponent<SpriteRenderer>().color = color;
+		_torusCorner.GetComponent<SpriteRenderer>().sprite = _normalSprite;
 		_torusCorner.name = playerName + " horizontal";
 		_torusCorner.GetComponent<DamageCounter>().controller = this;
 		_torusCorner.GetComponentInChildren<Shield>().controller = this;
-
 	}
 
 	/// <summary>
@@ -106,6 +133,7 @@ public class PlayerController : MonoBehaviour
 					// Reset fire rate counter and initialize missile
 					m_missileNextFireTime = Time.time + _missileFireRate;
 					_firedMissile = Network.Instantiate(_missileToClone, _missileTransform.position, _missileTransform.rotation, 0) as GameObject;
+					_firedMissile.GetComponent<NetworkView>().RPC("SetSprite", RPCMode.AllBuffered, _missileSpriteFilename, _thrustingMissileSpriteFilename);
 					
 					// Set velocity to be the ship's velocity plus the launch velocity along look vector, and set hooks to CFD and self
 					_firedMissile.rigidbody2D.velocity = rigidbody2D.velocity + ForwardVec2() * _missileLaunchVelocity;
@@ -125,6 +153,7 @@ public class PlayerController : MonoBehaviour
 					// Reset fire rate counter and initialize mine
 					m_mineNextFireTime = Time.time + _mineFireRate;
 					_firedMine = Network.Instantiate(_mineToClone, _mineTransform.position, _mineTransform.rotation, 0) as GameObject;
+					_firedMine.GetComponent<NetworkView>().RPC("SetSprite", RPCMode.AllBuffered, _mineSpriteFilename);
 					
 					// Set velocity to be the ship's velocity plus the launch velocity along look vector, and set hooks to CFD and self
 					_firedMine.rigidbody2D.velocity = rigidbody2D.velocity + ForwardVec2() * _mineLaunchVelocity;
@@ -147,6 +176,10 @@ public class PlayerController : MonoBehaviour
 			Vector3 forward = ForwardVec3 ();
 			float thrust = Input.GetAxisRaw ("Thrust");
 			rigidbody2D.AddForce(new Vector2(forward.x, forward.y) * thrust * _thrustFactor);
+			if (thrust > 0.0f)
+				thrusting = true;
+			else
+				thrusting = false;
 
 			// Directly set angular velocity (no angular acceleration/force, though adding that that might add to gameplay)
 			float turn = Input.GetAxisRaw ("Turn");
@@ -158,6 +191,13 @@ public class PlayerController : MonoBehaviour
 
 	void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info) {
 		stream.Serialize(ref damage);
+		if (stream.isWriting) {
+			stream.Serialize(ref _thrusting);
+		} else {
+			bool t = false;
+			stream.Serialize(ref t);
+			thrusting = t;
+		}
 	}
 
 	/// <summary>

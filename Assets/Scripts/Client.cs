@@ -12,7 +12,7 @@ public class Client : MonoBehaviour {
 			return;
 
 		//Connect to self
-		if (GUI.Button(new Rect(0.0f, 40.0f, 200.0f, 40.0f), "Connect to localhost")) {
+		if (GUI.Button(new Rect(0.0f, 80.0f, 200.0f, 40.0f), "Connect to localhost")) {
 			NetworkConnectionError e = Network.Connect("127.0.0.1", Server.port);
 			if (e != NetworkConnectionError.NoError) {
 				Server.error = e.ToString();
@@ -27,7 +27,7 @@ public class Client : MonoBehaviour {
 			if (hostData[i].connectedPlayers >= hostData[i].playerLimit)
 				continue;
 
-			if (GUI.Button(new Rect(0.0f, 40.0f * (i+2), 200.0f, 40.0f), hostData[i].gameName)) {
+			if (GUI.Button(new Rect(0.0f, 40.0f * (i+3), 200.0f, 40.0f), hostData[i].gameName)) {
 				NetworkConnectionError error = Network.Connect(hostData[i]);
 				if (error != NetworkConnectionError.NoError) {
 					_error = error.ToString();

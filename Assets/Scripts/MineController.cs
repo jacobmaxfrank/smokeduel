@@ -32,6 +32,11 @@ public class MineController : MonoBehaviour
 		rigidbody2D.AddForce(forward * -_thrustForce);
 	}
 
+	[RPC]
+	public void SetSprite(string filename) {
+		GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(filename);
+	}
+
 	/// <summary>
 	/// Update once per frame (handle user input)
 	/// </summary>

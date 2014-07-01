@@ -17,6 +17,32 @@ public class MissileController : MonoBehaviour
 
 	public float _smokeAmount;
 
+	private Sprite _normalSprite, _thrustingSprite;
+	private bool _thrusting;
+	public bool thrusting {
+		set {
+			if (_thrusting == value)
+				return;
+
+			_thrusting = value;
+
+			Sprite sprite;
+			if (_thrusting)
+				sprite = _thrustingSprite;
+			else
+				sprite = _normalSprite;
+
+			GetComponent<SpriteRenderer>().sprite = sprite;
+			/*
+			_torusHorizontal.GetComponent<SpriteRenderer>().sprite = sprite;
+			_torusVertical.GetComponent<SpriteRenderer>().sprite = sprite;
+			_torusCorner.GetComponent<SpriteRenderer>().sprite = sprite;
+			*/
+		}
+		get { return _thrusting; }
+	}
+
+
 	/// <summary>
 	/// Initialization
 	/// </summary>
@@ -29,23 +55,33 @@ public class MissileController : MonoBehaviour
 		m_autoDetonate = Time.time + _autoDetonateDelay;
 	}
 
+	[RPC]
+	public void SetSprite(string normalFilename, string thrustingFilename) {
+		_normalSprite = Resources.Load<Sprite>(normalFilename);
+		_thrustingSprite = Resources.Load<Sprite>(thrustingFilename);
+		GetComponent<SpriteRenderer>().sprite = _normalSprite;
+	}
+
 	/// <summary>
 	/// Update once per physics timestep
 	/// </summary>
 	void FixedUpdate()
 	{
-		if (! gameObject.networkView.isMine)
-			return;
-
 		if (Time.time >= m_thrustStart && Time.time <= m_thrustEnd)
 		{
-			// Get quaternion representing heading
-			Quaternion rotation = Quaternion.Euler(0f, 0f, rigidbody2D.transform.eulerAngles.z);
-			
-			// Get look vector from heading quat and apply thrust along it
-			Vector3 forward = rotation * new Vector3 (1f, 0f, 0f);
-			forward.Normalize();
-			rigidbody2D.AddForce(forward * _thrustForce);
+			thrusting = true;
+
+			if (gameObject.networkView.isMine) {
+				// Get quaternion representing heading
+				Quaternion rotation = Quaternion.Euler(0f, 0f, rigidbody2D.transform.eulerAngles.z);
+				
+				// Get look vector from heading quat and apply thrust along it
+				Vector3 forward = rotation * new Vector3 (1f, 0f, 0f);
+				forward.Normalize();
+				rigidbody2D.AddForce(forward * _thrustForce);
+			}
+		} else {
+			thrusting = false;
 		}
 	}
 
