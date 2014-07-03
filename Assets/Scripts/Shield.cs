@@ -10,9 +10,9 @@ public class Shield : MonoBehaviour {
 		SpriteRenderer renderer = GetComponent<SpriteRenderer>();
 
 		float newAlpha;
-		if (damage < 50.0f)
+		if (damage < controller.maxDamage / 2.0f)
 			newAlpha = 0.0f;
-		else if (damage < 75.0f)
+		else if (damage < controller.maxDamage * 3.0f / 4.0f)
 			newAlpha = Mathf.PingPong(Time.time, 1.0f);
 		else
 			newAlpha = Mathf.PingPong(Time.time * 2.0f, 1.0f);

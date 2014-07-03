@@ -31,6 +31,8 @@ public class PlayerController : MonoBehaviour
 	public CFDController _CFD;
 
 	public float damage;
+	public float maxDamage;
+	public float smokeAmount;
 
 	private bool _thrusting;
 	public bool thrusting {
@@ -164,6 +166,9 @@ public class PlayerController : MonoBehaviour
 			}
 		}
 
+
+		if (damage >= maxDamage)
+			Detonate();
 	}
 
 	/// <summary>
@@ -261,6 +266,18 @@ public class PlayerController : MonoBehaviour
 		Vector2 forward = ForwardVec2 ();
 		return new Vector3 (forward.x, forward.y, 0f);
 	}
+
+	private void Detonate() {
+		int cfd_x, cfd_y;
+		_CFD.WorldToGrid (rigidbody2D.transform.position, out cfd_x, out cfd_y);
+		if (Network.isClient)
+			_CFD.gameObject.GetComponent<NetworkView>().RPC("AddDensityAt", RPCMode.Server, smokeAmount, cfd_x, cfd_y);
+		else
+			_CFD.AddDensityAt(smokeAmount, cfd_x, cfd_y);
+
+		Network.Destroy(gameObject);
+	}
+
 	
 	// This is how to draw a sprite with the current transformation and rotation of the parent object, for reference
 	/*void OnGUI()
