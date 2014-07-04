@@ -330,6 +330,8 @@ GameObject:
   m_Component:
   - 4: {fileID: 549431679}
   - 114: {fileID: 549431678}
+  - 114: {fileID: 549431680}
+  - 148: {fileID: 549431681}
   m_Layer: 0
   m_Name: Client
   m_TagString: Untagged
@@ -360,6 +362,30 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
+--- !u!114 &549431680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 549431677}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa2d405d4aa5ce843aafcf4d511d2d1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 0}
+--- !u!148 &549431681
+NetworkView:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 549431677}
+  m_Enabled: 1
+  m_StateSynchronization: 0
+  m_Observed: {fileID: 549431680}
+  m_ViewID:
+    m_ID: 2
+    m_Type: 1
 --- !u!1 &598754165
 GameObject:
   m_ObjectHideFlags: 0
@@ -419,6 +445,8 @@ GameObject:
   m_Component:
   - 4: {fileID: 984047347}
   - 114: {fileID: 984047346}
+  - 114: {fileID: 984047348}
+  - 148: {fileID: 984047349}
   m_Layer: 0
   m_Name: Server
   m_TagString: Untagged
@@ -449,6 +477,30 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 5
+--- !u!114 &984047348
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 984047345}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa2d405d4aa5ce843aafcf4d511d2d1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 0}
+--- !u!148 &984047349
+NetworkView:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 984047345}
+  m_Enabled: 1
+  m_StateSynchronization: 0
+  m_Observed: {fileID: 984047348}
+  m_ViewID:
+    m_ID: 3
+    m_Type: 1
 --- !u!1 &1228619503
 GameObject:
   m_ObjectHideFlags: 0

@@ -29,6 +29,7 @@ public class PlayerController : MonoBehaviour
 	public int _horizontalWrap = 0, _verticalWrap = 0;
 
 	public CFDController _CFD;
+	private Scoreboard _myScoreboard, _enemyScoreboard;
 
 	public float damage;
 	public float maxDamage;
@@ -88,6 +89,17 @@ public class PlayerController : MonoBehaviour
 	public void SetUpPlayer(string playerName, NetworkViewID horizontalID, NetworkViewID verticalID, NetworkViewID cornerID, string colorName) {
 		gameObject.name = playerName;
 		_CFD = GameObject.Find("CFD").GetComponent<CFDController>();
+
+		//Set up scoreboard
+		if (IsOwnedByServer()) {
+			_myScoreboard = GameObject.Find("Server").GetComponent<Scoreboard>();
+			_myScoreboard.player = this;
+			_enemyScoreboard = GameObject.Find("Client").GetComponent<Scoreboard>();
+		} else {
+			_myScoreboard = GameObject.Find("Client").GetComponent<Scoreboard>();
+			_myScoreboard.player = this;
+			_enemyScoreboard = GameObject.Find("Server").GetComponent<Scoreboard>();
+		}
 
 		_normalSprite = Resources.Load<Sprite>("Sprites/fighter_" + colorName);
 		_thrustingSprite = Resources.Load<Sprite>("Sprites/fighter_" + colorName + "_thrust");
@@ -276,7 +288,17 @@ public class PlayerController : MonoBehaviour
 			_CFD.AddDensityAt(smokeAmount, cfd_x, cfd_y);
 
 		Network.Destroy(gameObject);
+		Network.Destroy(_torusHorizontal);
+		Network.Destroy(_torusVertical);
+		Network.Destroy(_torusCorner);
+		_enemyScoreboard.GetComponent<NetworkView>().RPC("AddWin", RPCMode.AllBuffered);
 	}
+
+	public bool IsOwnedByServer() {
+		return (Network.isServer && GetComponent<NetworkView>().isMine) ||
+			(Network.isClient && ! GetComponent<NetworkView>().isMine);
+	}
+
 
 	
 	// This is how to draw a sprite with the current transformation and rotation of the parent object, for reference
