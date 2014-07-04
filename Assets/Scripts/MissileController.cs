@@ -41,6 +41,7 @@ public class MissileController : MonoBehaviour
 		}
 		get { return _thrusting; }
 	}
+	public float thrustForce;
 
 
 	/// <summary>
@@ -60,6 +61,9 @@ public class MissileController : MonoBehaviour
 		_normalSprite = Resources.Load<Sprite>(normalFilename);
 		_thrustingSprite = Resources.Load<Sprite>(thrustingFilename);
 		GetComponent<SpriteRenderer>().sprite = _normalSprite;
+
+		//TODO Shouldn't do GameObject.Find during gameplay
+		_CFD = GameObject.Find("CFD").GetComponent<CFDController>();
 	}
 
 	/// <summary>
@@ -82,6 +86,15 @@ public class MissileController : MonoBehaviour
 			}
 		} else {
 			thrusting = false;
+		}
+
+		if (Network.isServer && _thrusting) {
+			int cfd_x, cfd_y;
+			_CFD.WorldToGrid (transform.position, out cfd_x, out cfd_y);
+			Vector2 forward = transform.right;
+			_CFD.AddUForce(-thrustForce * forward.x, cfd_x, cfd_y);
+			//Unity goes y: bottom to top, CFD goes V: top to bottom
+			_CFD.AddVForce(-thrustForce * -forward.y, cfd_x, cfd_y);
 		}
 	}
 

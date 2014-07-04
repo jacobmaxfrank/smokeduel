@@ -6,7 +6,7 @@ public class Scoreboard : MonoBehaviour {
 	private int wins;
 
 	void OnGUI() {
-		string str = wins;
+		string str = wins.ToString();
 		if (wins == 1)
 			str += " win";
 		else

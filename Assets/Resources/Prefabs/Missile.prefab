@@ -78,6 +78,7 @@ MonoBehaviour:
   _CFD: {fileID: 0}
   _firer: {fileID: 0}
   _smokeAmount: 75
+  thrustForce: 2000
 --- !u!148 &14800000
 NetworkView:
   m_ObjectHideFlags: 1

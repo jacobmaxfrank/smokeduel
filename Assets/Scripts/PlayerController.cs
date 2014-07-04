@@ -34,6 +34,7 @@ public class PlayerController : MonoBehaviour
 	public float damage;
 	public float maxDamage;
 	public float smokeAmount;
+	public float thrustForce;
 
 	private bool _thrusting;
 	public bool thrusting {
@@ -204,6 +205,16 @@ public class PlayerController : MonoBehaviour
 		}
 
 		UpdateTorusClones ();
+
+		//Copy into torus clones?
+		if (Network.isServer && _thrusting) {
+			int cfd_x, cfd_y;
+			_CFD.WorldToGrid (transform.position, out cfd_x, out cfd_y);
+			Vector2 forward = transform.right;
+			_CFD.AddUForce(-thrustForce * forward.x, cfd_x, cfd_y);
+			//Unity goes y: bottom to top, CFD goes V: top to bottom
+			_CFD.AddVForce(-thrustForce * -forward.y, cfd_x, cfd_y);
+		}
 	}
 
 	void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info) {

@@ -179,6 +179,7 @@ MonoBehaviour:
   damage: 0
   maxDamage: 10000
   smokeAmount: 1000
+  thrustForce: 1000
 --- !u!114 &11400002
 MonoBehaviour:
   m_ObjectHideFlags: 1
