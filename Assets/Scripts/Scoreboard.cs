@@ -18,7 +18,7 @@ public class Scoreboard : MonoBehaviour {
 		}
 
 		float screenHalf;
-		if (gameObject.name == "Server")
+		if (GetComponent<Server>() != null)
 			screenHalf = 0.0f;
 		else
 			screenHalf = 1.0f;

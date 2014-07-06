@@ -1,13 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-/// <summary>
-/// Update player's controller with which edges it's touching
-/// </summary>
 public class TorusDisplayWrapping : MonoBehaviour
 {
 	void OnTriggerEnter2D(Collider2D collider)
 	{
+		//TODO there's gotta be an easier way to do this
 		GameObject parent = (GameObject)collider.attachedRigidbody.transform.root.gameObject; // get parent of colliding object
 		if (parent.tag.Equals("Player"))
 		{
@@ -16,16 +14,16 @@ public class TorusDisplayWrapping : MonoBehaviour
 			switch (name)
 			{
 			case "Right Bound":
-				c._horizontalWrap = -1;
+				c.horizontalWrap = -1;
 				break;
 			case "Left Bound":
-				c._horizontalWrap = 1;
+				c.horizontalWrap = 1;
 				break;
 			case "Bottom Bound":
-				c._verticalWrap = 1;
+				c.verticalWrap = 1;
 				break;
 			case "Top Bound":
-				c._verticalWrap = -1;
+				c.verticalWrap = -1;
 				break;
 
 			default:
@@ -44,16 +42,16 @@ public class TorusDisplayWrapping : MonoBehaviour
 			switch (name)
 			{
 			case "Right Bound":
-				c._horizontalWrap = 0;
+				c.horizontalWrap = 0;
 				break;
 			case "Left Bound":
-				c._horizontalWrap = 0;
+				c.horizontalWrap = 0;
 				break;
 			case "Bottom Bound":
-				c._verticalWrap = 0;
+				c.verticalWrap = 0;
 				break;
 			case "Top Bound":
-				c._verticalWrap = 0;
+				c.verticalWrap = 0;
 				break;
 				
 			default:

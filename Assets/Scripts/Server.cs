@@ -7,7 +7,7 @@ public enum PLAYER_COLOR {
 	BLUE = 2
 }
 
-public class Server : MonoBehaviour {
+public class Server : SingletonMonoBehaviour<Server> {
 	public static bool connected;
 	//public static readonly string GAME_NAME = "HydromancySmokeDuel";
 	public static string error = null;

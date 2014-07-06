@@ -13,6 +13,9 @@ GameObject:
   - 114: {fileID: 11400000}
   - 50: {fileID: 5000000}
   - 148: {fileID: 14800000}
+  - 114: {fileID: 11400002}
+  - 148: {fileID: 14800002}
+  - 114: {fileID: 11400004}
   m_Layer: 0
   m_Name: Missile
   m_TagString: Untagged
@@ -38,8 +41,8 @@ Rigidbody2D:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 100000}
-  m_Mass: .000500000024
-  m_LinearDrag: .119999997
+  m_Mass: .00499999989
+  m_LinearDrag: .200000003
   m_AngularDrag: 0
   m_GravityScale: 0
   m_FixedAngle: 0
@@ -72,13 +75,34 @@ MonoBehaviour:
   _initialVelocity: .25
   _thrustStartDelay: .300000012
   _thrustEndDelay: 2
-  _activationDelay: .5
+--- !u!114 &11400002
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b887380b027fd24182f451843f408bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _thrustForce: .0199999996
+--- !u!114 &11400004
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ceab2ab37175ee4bafa73df5e5a93ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _inputDetonateAxis: Missile
+  _smokeAmount: 50
+  _autoDetonate: 1
+  _activationDelay: .25
   _autoDetonateDelay: 3
-  _thrustForce: .00200000009
-  _CFD: {fileID: 0}
-  _firer: {fileID: 0}
-  _smokeAmount: 75
-  thrustForce: 2000
 --- !u!148 &14800000
 NetworkView:
   m_ObjectHideFlags: 1
@@ -88,6 +112,18 @@ NetworkView:
   m_Enabled: 1
   m_StateSynchronization: 2
   m_Observed: {fileID: 400000}
+  m_ViewID:
+    m_ID: 0
+    m_Type: 0
+--- !u!148 &14800002
+NetworkView:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_StateSynchronization: 2
+  m_Observed: {fileID: 11400002}
   m_ViewID:
     m_ID: 0
     m_Type: 0

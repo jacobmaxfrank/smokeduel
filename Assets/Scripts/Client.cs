@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class Client : MonoBehaviour {
+public class Client : SingletonMonoBehaviour<Client> {
 
 	void Start() {
 		//MasterServer.RequestHostList(Server.GAME_NAME);

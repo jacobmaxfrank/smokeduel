@@ -1,304 +1,214 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-/// <summary>
-/// Player ship logic
-/// </summary>
-public class PlayerController : MonoBehaviour
-{
-	// Graphics
-	public Texture _tex;
-
+[RequireComponent (typeof(Thruster), typeof(DamageCounter), typeof(Detonateable))]
+public class PlayerController : MonoBehaviour {
 	// Maneuvering
-	public float _thrustFactor, _turnRate;
+	[SerializeField]
+	private float _turnRate;
 
-	// Missile
-	public GameObject _missileToClone, _mineToClone;
-	public Transform _missileTransform, _mineTransform;
-	public float _missileFireRate,			// seconds
-				 _missileLaunchVelocity;
-	public float _mineFireRate,			// seconds
-				 _mineLaunchVelocity;
-	private float m_missileNextFireTime, m_mineNextFireTime;
-	public GameObject _firedMissile, _firedMine;
+	// Weapons
+	[SerializeField]
+	private GameObject _missileToClone;
+	[SerializeField]
+	private GameObject _mineToClone;
+	[SerializeField]
+	private Transform _missileTransform;
+	[SerializeField]
+	private Transform _mineTransform;
+	[SerializeField]
+	private float _refireRate; //seconds
 
-	// Torus wrapping
-	private Vector2 m_canvasBounds = new Vector2(-1f, -1f);
-	public GameObject _torusHorizontal, _torusVertical, _torusCorner;
-	private static readonly Vector3 OFFSCREEN = new Vector3(-1000f, 0f, 0f);
-	public int _horizontalWrap = 0, _verticalWrap = 0;
-
-	public CFDController _CFD;
-	private Scoreboard _myScoreboard, _enemyScoreboard;
-
-	public float damage;
-	public float maxDamage;
-	public float smokeAmount;
-	public float thrustForce;
-
-	private bool _thrusting;
-	public bool thrusting {
-		set {
-			if (_thrusting == value)
-				return;
-
-			_thrusting = value;
-
-			Sprite sprite;
-			if (_thrusting)
-				sprite = _thrustingSprite;
-			else
-				sprite = _normalSprite;
-
-			GetComponent<SpriteRenderer>().sprite = sprite;
-			_torusHorizontal.GetComponent<SpriteRenderer>().sprite = sprite;
-			_torusVertical.GetComponent<SpriteRenderer>().sprite = sprite;
-			_torusCorner.GetComponent<SpriteRenderer>().sprite = sprite;
-		}
-		get { return _thrusting; }
-	}
-
-	private Sprite _normalSprite, _thrustingSprite;
+	private float _missileNextFireTime, _mineNextFireTime;
+	private GameObject _firedMissile, _firedMine;
 	private string _missileSpriteFilename, _thrustingMissileSpriteFilename;
 	private string _mineSpriteFilename;
 
-	/// <summary>
-	/// Initialization
-	/// </summary>
-	void Start ()
-	{
+	// Torus wrapping
+	private Vector2 _canvasBounds = new Vector2(-1f, -1f);
+	private GameObject _torusHorizontal, _torusVertical, _torusCorner;
+	private static readonly Vector3 OFFSCREEN = new Vector3(-1000f, 0f, 0f);
+	private int _horizontalWrap = 0, _verticalWrap = 0;
+	public int horizontalWrap { //Prevent editor from displaying
+		set { _horizontalWrap = value; }
+		get { return _horizontalWrap; }
+	}
+	public int verticalWrap {
+		set { _verticalWrap = value; }
+		get { return _verticalWrap; }
+	}
+
+	//Scoreboard
+	private Scoreboard _myScoreboard, _enemyScoreboard;
+
+	//Damage
+	public float maxDamage;
+	private float _damage;
+	public float damage {
+		set { _damage = value; }
+		get { return _damage; }
+	}
+
+
+	void Start () {
 		// Save world bounding box size for torus wrapping
 		object[] obj = GameObject.FindObjectsOfType(typeof (GameObject));
-		foreach (object o in obj)
-		{
+		foreach (object o in obj) {
 			GameObject g = (GameObject) o;
-			if (g.name.Equals("Bounds"))
-			{
+			if (g.name.Equals("Bounds")) {
 				BoxCollider2D bounds_collider = (BoxCollider2D)g.collider2D;
-				m_canvasBounds = new Vector2(bounds_collider.size.x * bounds_collider.transform.localScale.x,
+				_canvasBounds = new Vector2(bounds_collider.size.x * bounds_collider.transform.localScale.x,
 				                             bounds_collider.size.y * bounds_collider.transform.localScale.y);
 				break;
 			}
 		}
-		if (m_canvasBounds.x == -1f)
+		if (_canvasBounds.x == -1f)
 			throw new UnityException("Unable to locate world bounding box");
 
 		GetComponent<DamageCounter>().controller = this;
 	}
 
 	[RPC]
-	public void SetUpPlayer(string playerName, NetworkViewID horizontalID, NetworkViewID verticalID, NetworkViewID cornerID, string colorName) {
+	public void SetUpPlayer(string playerName, NetworkViewID horizontalID,
+			NetworkViewID verticalID, NetworkViewID cornerID, string colorName) {
 		gameObject.name = playerName;
-		_CFD = GameObject.Find("CFD").GetComponent<CFDController>();
 
-		//Set up scoreboard
+		//Set up scoreboards
 		if (IsOwnedByServer()) {
-			_myScoreboard = GameObject.Find("Server").GetComponent<Scoreboard>();
+			_myScoreboard = Server.Get().GetComponent<Scoreboard>();
 			_myScoreboard.player = this;
-			_enemyScoreboard = GameObject.Find("Client").GetComponent<Scoreboard>();
+			_enemyScoreboard = Client.Get().GetComponent<Scoreboard>();
 		} else {
-			_myScoreboard = GameObject.Find("Client").GetComponent<Scoreboard>();
+			_myScoreboard = Client.Get().GetComponent<Scoreboard>();
 			_myScoreboard.player = this;
-			_enemyScoreboard = GameObject.Find("Server").GetComponent<Scoreboard>();
+			_enemyScoreboard = Server.Get().GetComponent<Scoreboard>();
 		}
 
-		_normalSprite = Resources.Load<Sprite>("Sprites/fighter_" + colorName);
-		_thrustingSprite = Resources.Load<Sprite>("Sprites/fighter_" + colorName + "_thrust");
+		//My sprites
+		string normalSpriteFilename = "Sprites/fighter_" + colorName;
+		string thrustingSpriteFilename = "Sprites/fighter_" + colorName + "_thrust";
+		GetComponent<Thruster>().SetSprites(normalSpriteFilename, thrustingSpriteFilename);
 
+		//Weapon sprites
 		_missileSpriteFilename  = "Sprites/missile_" + colorName;
 		_thrustingMissileSpriteFilename = "Sprites/missile_" + colorName + "_thrust";
 		_mineSpriteFilename = "Sprites/mine_" + colorName;
 
-		GetComponent<SpriteRenderer>().sprite = _normalSprite;
-		GetComponentInChildren<Shield>().controller = this;
-
-		_torusHorizontal = NetworkView.Find(horizontalID).gameObject;
-		_torusHorizontal.GetComponent<SpriteRenderer>().sprite = _normalSprite;
-		_torusHorizontal.name = playerName + " horizontal";
-		_torusHorizontal.GetComponent<DamageCounter>().controller = this;
-		_torusHorizontal.GetComponentInChildren<Shield>().controller = this;
-
-		_torusVertical = NetworkView.Find(verticalID).gameObject;
-		_torusVertical.GetComponent<SpriteRenderer>().sprite = _normalSprite;
-		_torusVertical.name = playerName + " vertical";
-		_torusVertical.GetComponent<DamageCounter>().controller = this;
-		_torusVertical.GetComponentInChildren<Shield>().controller = this;
-
-		_torusCorner = NetworkView.Find(cornerID).gameObject;
-		_torusCorner.GetComponent<SpriteRenderer>().sprite = _normalSprite;
-		_torusCorner.name = playerName + " horizontal";
-		_torusCorner.GetComponent<DamageCounter>().controller = this;
-		_torusCorner.GetComponentInChildren<Shield>().controller = this;
+		SetUpTorusClone(out _torusHorizontal, horizontalID, playerName, normalSpriteFilename, thrustingSpriteFilename);
+		SetUpTorusClone(out _torusVertical, verticalID, playerName, normalSpriteFilename, thrustingSpriteFilename);
+		SetUpTorusClone(out _torusCorner, cornerID, playerName, normalSpriteFilename, thrustingSpriteFilename);
+		GetComponent<Thruster>().SetTorusClones(_torusHorizontal, _torusVertical, _torusCorner);
 	}
 
-	/// <summary>
-	/// Update once per frame (handle user input)
-	/// </summary>
-	void Update ()
-	{
+	private void SetUpTorusClone(out GameObject torusPointer, NetworkViewID id, string playerName,
+			string normalSpriteFilename, string thrustingSpriteFilename) {
+		torusPointer = NetworkView.Find(id).gameObject;
+		torusPointer.name = playerName + " horizontal";
+		torusPointer.GetComponent<DamageCounter>().controller = this;
+		torusPointer.GetComponentInChildren<Shield>().controller = this;
+	}
+
+	void Update () {
 		if (! gameObject.networkView.isMine)
 			return;
 
-		if (Input.GetAxisRaw("Missile") == 1)
-		{
-			if (_firedMissile == null)
-			{
-				if (Time.time > m_missileNextFireTime) // TODO: BUG > Need to bump this when missile detonation occurs?  Check original code.
-				{
-					// Reset fire rate counter and initialize missile
-					m_missileNextFireTime = Time.time + _missileFireRate;
-					_firedMissile = Network.Instantiate(_missileToClone, _missileTransform.position, _missileTransform.rotation, 0) as GameObject;
-					_firedMissile.GetComponent<NetworkView>().RPC("SetSprite", RPCMode.AllBuffered, _missileSpriteFilename, _thrustingMissileSpriteFilename);
-					
-					// Set velocity to be the ship's velocity plus the launch velocity along look vector, and set hooks to CFD and self
-					_firedMissile.rigidbody2D.velocity = rigidbody2D.velocity + ForwardVec2() * _missileLaunchVelocity;
-					MissileController mc = _firedMissile.GetComponent<MissileController>();
-					mc._CFD = _CFD;
-					mc._firer = this;
-				}
+		if (Input.GetAxisRaw("Missile") == 1) {
+			if (CanFireMissile()) {
+				_firedMissile = Network.Instantiate(_missileToClone, _missileTransform.position, _missileTransform.rotation, 0) as GameObject;
+				_firedMissile.GetComponent<NetworkView>().RPC("SetSprites", RPCMode.AllBuffered, _missileSpriteFilename, _thrustingMissileSpriteFilename);
+				_firedMissile.GetComponent<MissileController>().SetFirer(this);
 			}
 		}
 
-		if (Input.GetAxisRaw("Mine") == 1)
-		{
-			if (_firedMine == null)
-			{
-				if (Time.time > m_mineNextFireTime) // TODO: BUG > Need to bump this when missile detonation occurs?  Check original code.
-				{
-					// Reset fire rate counter and initialize mine
-					m_mineNextFireTime = Time.time + _mineFireRate;
-					_firedMine = Network.Instantiate(_mineToClone, _mineTransform.position, _mineTransform.rotation, 0) as GameObject;
-					_firedMine.GetComponent<NetworkView>().RPC("SetSprite", RPCMode.AllBuffered, _mineSpriteFilename);
-					
-					// Set velocity to be the ship's velocity plus the launch velocity along look vector, and set hooks to CFD and self
-					_firedMine.rigidbody2D.velocity = rigidbody2D.velocity + ForwardVec2() * _mineLaunchVelocity;
-					MineController mc = _firedMine.GetComponent<MineController>();
-					mc._CFD = _CFD;
-					mc._firer = this;
-				}
+		if (Input.GetAxisRaw("Mine") == 1) {
+			if (CanFireMine()) {
+				_firedMine = Network.Instantiate(_mineToClone, _mineTransform.position, _mineTransform.rotation, 0) as GameObject;
+				_firedMine.GetComponent<NetworkView>().RPC("SetSprite", RPCMode.AllBuffered, _mineSpriteFilename);
+				
+				_firedMine.GetComponent<MineController>().SetFirer(this);
 			}
 		}
-
 
 		if (damage >= maxDamage)
-			Detonate();
+			GetComponent<Detonateable>().Detonate();
 	}
 
-	/// <summary>
-	/// Single physics timestep update
-	/// </summary>
-	void FixedUpdate()
-	{
-		if (gameObject.networkView.isMine) {
-			// Apply thrust along look vector
-			Vector3 forward = ForwardVec3 ();
-			float thrust = Input.GetAxisRaw ("Thrust");
-			rigidbody2D.AddForce(new Vector2(forward.x, forward.y) * thrust * _thrustFactor);
-			if (thrust > 0.0f)
-				thrusting = true;
-			else
-				thrusting = false;
+	private bool CanFireMissile() {
+		return _firedMissile == null && Time.time > _missileNextFireTime;
+	}
 
-			// Directly set angular velocity (no angular acceleration/force, though adding that that might add to gameplay)
+	private bool CanFireMine() {
+		return _firedMine == null && Time.time > _mineNextFireTime;
+	}
+
+	public void MissileDetonated() {
+		_missileNextFireTime = Time.time + _refireRate;
+	}
+
+	public void MineDetonated() {
+		_mineNextFireTime = Time.time + _refireRate;
+	}
+
+	void FixedUpdate() {
+		if (gameObject.networkView.isMine) {
+			float thrust = Input.GetAxisRaw ("Thrust");
+			if (thrust > 0.0f)
+				GetComponent<Thruster>().thrusting = true;
+			else
+				GetComponent<Thruster>().thrusting = false;
+
+			// Directly set angular velocity (no angular acceleration/force,
+			// though adding that that might add to gameplay)
 			float turn = Input.GetAxisRaw ("Turn");
 			rigidbody2D.angularVelocity = _turnRate * turn;
 		}
 
-		UpdateTorusClones ();
-
-		//Copy into torus clones?
-		if (Network.isServer && _thrusting) {
-			int cfd_x, cfd_y;
-			_CFD.WorldToGrid (transform.position, out cfd_x, out cfd_y);
-			Vector2 forward = transform.right;
-			_CFD.AddUForce(-thrustForce * forward.x, cfd_x, cfd_y);
-			//Unity goes y: bottom to top, CFD goes V: top to bottom
-			_CFD.AddVForce(-thrustForce * -forward.y, cfd_x, cfd_y);
-		}
+		UpdateTorusClones();
 	}
 
 	void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info) {
-		stream.Serialize(ref damage);
-		if (stream.isWriting) {
-			stream.Serialize(ref _thrusting);
-		} else {
-			bool t = false;
-			stream.Serialize(ref t);
-			thrusting = t;
-		}
+		stream.Serialize(ref _damage);
 	}
 
-	/// <summary>
-	/// Update the position of edge/corner torus clones
-	/// </summary>
 	private void UpdateTorusClones()
 	{
-		switch (_horizontalWrap)
-		{
+		switch (_horizontalWrap) {
 		case -1:	// left edge
 			_torusHorizontal.transform.eulerAngles = rigidbody2D.transform.eulerAngles;
-			_torusHorizontal.transform.position = new Vector3(transform.position.x - m_canvasBounds.x, transform.position.y, 0f);
+			_torusHorizontal.transform.position = new Vector3(transform.position.x - _canvasBounds.x, transform.position.y, 0f);
 			break;
 		case 1:		// right edge
 			_torusHorizontal.transform.eulerAngles = rigidbody2D.transform.eulerAngles;
-			_torusHorizontal.transform.position = new Vector3(transform.position.x + m_canvasBounds.x, transform.position.y, 0f);
+			_torusHorizontal.transform.position = new Vector3(transform.position.x + _canvasBounds.x, transform.position.y, 0f);
 			break;
 		default:	// neither horizontal edge
 			_torusHorizontal.transform.position = OFFSCREEN;
 			break;
 		}
 
-		switch (_verticalWrap)
-		{
+		switch (_verticalWrap) {
 		case -1:	// top edge
 			_torusVertical.transform.eulerAngles = rigidbody2D.transform.eulerAngles;
-			_torusVertical.transform.position = new Vector3(transform.position.x, transform.position.y - m_canvasBounds.y, 0f);
+			_torusVertical.transform.position = new Vector3(transform.position.x, transform.position.y - _canvasBounds.y, 0f);
 			break;
 		case 1:		// bottom edge
 			_torusVertical.transform.eulerAngles = rigidbody2D.transform.eulerAngles;
-			_torusVertical.transform.position = new Vector3(transform.position.x, transform.position.y + m_canvasBounds.y, 0f);
+			_torusVertical.transform.position = new Vector3(transform.position.x, transform.position.y + _canvasBounds.y, 0f);
 			break;
 		default:	// neither vertical edge
 			_torusVertical.transform.position = OFFSCREEN;
 			break;
 		}
 
-		if (_horizontalWrap != 0 && _verticalWrap != 0)	// corner
-		{
+		if (_horizontalWrap != 0 && _verticalWrap != 0) {
 			_torusCorner.transform.eulerAngles = rigidbody2D.transform.eulerAngles;
-			_torusCorner.transform.position = new Vector3(transform.position.x + m_canvasBounds.x * _horizontalWrap, transform.position.y + m_canvasBounds.y * _verticalWrap, 0f);
+			_torusCorner.transform.position = new Vector3(transform.position.x + _canvasBounds.x * _horizontalWrap, transform.position.y + _canvasBounds.y * _verticalWrap, 0f);
 		}
 		else
 			_torusCorner.transform.position = OFFSCREEN;
 	}
 
-	/// <summary>
-	/// Get look/forward vector as a Vector2
-	/// </summary>
-	private Vector2 ForwardVec2()
-	{
-		Quaternion rotation = Quaternion.Euler(0f, 0f, rigidbody2D.transform.eulerAngles.z);
-		return rotation * new Vector3 (1f, 0f);
-	}
-
-	/// <summary>
-	/// Get look/forward vector as a Vector3
-	/// </summary>
-	private Vector3 ForwardVec3()
-	{
-		Vector2 forward = ForwardVec2 ();
-		return new Vector3 (forward.x, forward.y, 0f);
-	}
-
-	private void Detonate() {
-		int cfd_x, cfd_y;
-		_CFD.WorldToGrid (rigidbody2D.transform.position, out cfd_x, out cfd_y);
-		if (Network.isClient)
-			_CFD.gameObject.GetComponent<NetworkView>().RPC("AddDensityAt", RPCMode.Server, smokeAmount, cfd_x, cfd_y);
-		else
-			_CFD.AddDensityAt(smokeAmount, cfd_x, cfd_y);
-
-		Network.Destroy(gameObject);
+	void OnDetonate() {
 		Network.Destroy(_torusHorizontal);
 		Network.Destroy(_torusVertical);
 		Network.Destroy(_torusCorner);
@@ -309,23 +219,4 @@ public class PlayerController : MonoBehaviour
 		return (Network.isServer && GetComponent<NetworkView>().isMine) ||
 			(Network.isClient && ! GetComponent<NetworkView>().isMine);
 	}
-
-
-	
-	// This is how to draw a sprite with the current transformation and rotation of the parent object, for reference
-	/*void OnGUI()
-	{
-		if (Event.current.type.Equals(EventType.Repaint))
-		{
-			Matrix4x4 swap = GUI.matrix;
-			{	
-				Vector3 screen_pos = Camera.main.WorldToScreenPoint(rigidbody2D.transform.position);
-				screen_pos.y = Screen.height - screen_pos.y;
-
-				GUIUtility.RotateAroundPivot(-rigidbody2D.transform.eulerAngles.z, screen_pos);
-				Graphics.DrawTexture(new Rect(screen_pos.x - _tex.width / 2f, screen_pos.y - _tex.height / 2f, _tex.width, _tex.height), _tex);
-			}
-			GUI.matrix = swap;
-		}
-	}*/
 }

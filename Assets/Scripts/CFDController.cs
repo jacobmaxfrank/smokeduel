@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class CFDController : MonoBehaviour
+public class CFDController : SingletonMonoBehaviour<CFDController>
 {
 	private float[] m_density, m_dens_prev;	// density
 	private float[] m_vecu, m_vecu_prev;	// current horizontal flow
@@ -332,5 +332,10 @@ public class CFDController : MonoBehaviour
 				m_density[IX(i,j)] = m_density[IX(i,j)] * (1f - (Time.deltaTime / 50f));
 			}
 		}
+	}
+
+	//Returns if an array index is valid
+	public bool IsInRange(int a) {
+		return a >= 0 && a <= N;
 	}
 }

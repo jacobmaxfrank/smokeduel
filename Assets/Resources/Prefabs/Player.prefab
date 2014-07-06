@@ -15,6 +15,9 @@ GameObject:
   - 114: {fileID: 11400000}
   - 148: {fileID: 14800002}
   - 114: {fileID: 11400002}
+  - 114: {fileID: 11400006}
+  - 148: {fileID: 14800004}
+  - 114: {fileID: 11400008}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -157,29 +160,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 290dcdcbe9f393547aeaa72a208e1ee0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _tex: {fileID: 2800000, guid: 3bc72138acb71354d867dc6061038f0d, type: 3}
-  _thrustFactor: .00999999978
   _turnRate: 200
   _missileToClone: {fileID: 100000, guid: 900f40ad86759334da25d45b88dab18b, type: 2}
   _mineToClone: {fileID: 100000, guid: 17a05c0456370d043a4fefda4be9f097, type: 2}
   _missileTransform: {fileID: 400002}
   _mineTransform: {fileID: 400006}
-  _missileFireRate: 2
-  _missileLaunchVelocity: .25
-  _mineFireRate: 0
-  _mineLaunchVelocity: 0
-  _firedMissile: {fileID: 0}
-  _firedMine: {fileID: 0}
-  _torusHorizontal: {fileID: 0}
-  _torusVertical: {fileID: 0}
-  _torusCorner: {fileID: 0}
-  _horizontalWrap: 0
-  _verticalWrap: 0
-  _CFD: {fileID: 0}
-  damage: 0
+  _refireRate: 1
   maxDamage: 10000
-  smokeAmount: 1000
-  thrustForce: 1000
 --- !u!114 &11400002
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -203,7 +190,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c0a1d217795c8b46a963acf21d60fcc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  controller: {fileID: 0}
+  controller: {fileID: 11400000}
+--- !u!114 &11400006
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b887380b027fd24182f451843f408bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _thrustForce: .00999999978
+--- !u!114 &11400008
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ceab2ab37175ee4bafa73df5e5a93ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _inputDetonateAxis: 
+  _smokeAmount: 500
+  _autoDetonate: 0
+  _activationDelay: 0
+  _autoDetonateDelay: 0
 --- !u!148 &14800000
 NetworkView:
   m_ObjectHideFlags: 1
@@ -225,6 +240,18 @@ NetworkView:
   m_Enabled: 1
   m_StateSynchronization: 2
   m_Observed: {fileID: 11400000}
+  m_ViewID:
+    m_ID: 0
+    m_Type: 0
+--- !u!148 &14800004
+NetworkView:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_StateSynchronization: 2
+  m_Observed: {fileID: 11400006}
   m_ViewID:
     m_ID: 0
     m_Type: 0
