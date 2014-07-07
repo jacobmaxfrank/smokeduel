@@ -9,7 +9,7 @@ public enum PLAYER_COLOR {
 
 public class Server : SingletonMonoBehaviour<Server> {
 	public static bool connected;
-	//public static readonly string GAME_NAME = "HydromancySmokeDuel";
+	public static readonly string GAME_NAME = "HydromancySmokeDuel";
 	public static string error = null;
 	public static readonly int port = 25000;
 
@@ -42,7 +42,7 @@ public class Server : SingletonMonoBehaviour<Server> {
 
 	public void OnServerInitialized() {
 		OnConnect();
-		//MasterServer.RegisterHost(GAME_NAME, System.Environment.MachineName); 
+		MasterServer.RegisterHost(GAME_NAME, System.Environment.MachineName); 
 	}
 
 	public static void OnConnect() {

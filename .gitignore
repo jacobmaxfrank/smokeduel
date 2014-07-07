@@ -10,3 +10,4 @@ smokeduel_Data/
 *.exe
 *.swp
 *.pdb
+Build/

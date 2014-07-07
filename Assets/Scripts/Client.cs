@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class Client : SingletonMonoBehaviour<Client> {
 
 	void Start() {
-		//MasterServer.RequestHostList(Server.GAME_NAME);
+		MasterServer.RequestHostList(Server.GAME_NAME);
 	}
 
 	void OnGUI() {
@@ -20,7 +20,6 @@ public class Client : SingletonMonoBehaviour<Client> {
 			}
 		}
 
-		/*
 		//Ask master server
 		HostData[] hostData = MasterServer.PollHostList();
 		for (int i = 0; i < hostData.Length; ++i) {
@@ -28,14 +27,13 @@ public class Client : SingletonMonoBehaviour<Client> {
 				continue;
 
 			if (GUI.Button(new Rect(0.0f, 40.0f * (i+3), 200.0f, 40.0f), hostData[i].gameName)) {
-				NetworkConnectionError error = Network.Connect(hostData[i]);
-				if (error != NetworkConnectionError.NoError) {
-					_error = error.ToString();
-					Debug.LogError(error);
+				NetworkConnectionError e = Network.Connect(hostData[i]);
+				if (e != NetworkConnectionError.NoError) {
+					Server.error = e.ToString();
+					Debug.LogError(e);
 				}
 			}
 		}
-		*/
 	}
 
 	public void OnConnectedToServer() {
