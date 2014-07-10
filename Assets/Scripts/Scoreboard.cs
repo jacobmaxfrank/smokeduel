@@ -31,5 +31,7 @@ public class Scoreboard : MonoBehaviour {
 	[RPC]
 	public void AddWin() {
 		++wins;
+
+		ResetManager.Get().ShowResetButton();
 	}
 }

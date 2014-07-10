@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class CFDController : SingletonMonoBehaviour<CFDController>
+public class CFDController : SingletonMonoBehaviour<CFDController>, IResetable
 {
 	private float[] m_density, m_dens_prev;	// density
 	private float[] m_vecu, m_vecu_prev;	// current horizontal flow
@@ -17,8 +17,13 @@ public class CFDController : SingletonMonoBehaviour<CFDController>
 	/// <summary>
 	/// Initialize size and arrays
 	/// </summary>
-	void Start ()
+	void Start()
 	{
+		ResetManager.Get().Register(this);
+		Reset();
+	}
+
+	public void Reset() {
 		m_size = (N + 2) * (N + 2);
 
 		m_density 	= new float[m_size];

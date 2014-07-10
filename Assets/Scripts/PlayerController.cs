@@ -2,7 +2,7 @@
 using System.Collections;
 
 [RequireComponent (typeof(Thruster), typeof(DamageCounter), typeof(Detonateable))]
-public class PlayerController : MonoBehaviour {
+public class PlayerController : MonoBehaviour, IPreResetable {
 	// Maneuvering
 	[SerializeField]
 	private float _turnRate;
@@ -49,7 +49,6 @@ public class PlayerController : MonoBehaviour {
 		get { return _damage; }
 	}
 
-
 	void Start () {
 		// Save world bounding box size for torus wrapping
 		object[] obj = GameObject.FindObjectsOfType(typeof (GameObject));
@@ -66,6 +65,8 @@ public class PlayerController : MonoBehaviour {
 			throw new UnityException("Unable to locate world bounding box");
 
 		GetComponent<DamageCounter>().controller = this;
+
+		ResetManager.Get().Register(this);
 	}
 
 	[RPC]
@@ -98,6 +99,10 @@ public class PlayerController : MonoBehaviour {
 		SetUpTorusClone(out _torusVertical, verticalID, playerName, normalSpriteFilename, thrustingSpriteFilename);
 		SetUpTorusClone(out _torusCorner, cornerID, playerName, normalSpriteFilename, thrustingSpriteFilename);
 		GetComponent<Thruster>().SetTorusClones(_torusHorizontal, _torusVertical, _torusCorner);
+	}
+
+	public void PreReset() {
+		Network.Destroy(gameObject);
 	}
 
 	private void SetUpTorusClone(out GameObject torusPointer, NetworkViewID id, string playerName,
@@ -213,6 +218,7 @@ public class PlayerController : MonoBehaviour {
 		Network.Destroy(_torusVertical);
 		Network.Destroy(_torusCorner);
 		_enemyScoreboard.GetComponent<NetworkView>().RPC("AddWin", RPCMode.AllBuffered);
+		//TODO disable my scoreboard?
 	}
 
 	public bool IsOwnedByServer() {
